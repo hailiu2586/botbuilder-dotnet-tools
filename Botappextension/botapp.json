@@ -1,0 +1,8 @@
+{
+    "displayName": "{{bot-id-name}}",
+    "availableToOtherTenants": true,
+    "passwordCredentials": [{
+        "endDate": "{{expiry}}",
+        "value": "{{password}}"
+    }]
+}

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <NuspecFile>Microsoft.Bot.Builder.Tools.Build.nuspec</NuspecFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,4 +11,25 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
+  <Target Name="CopyLibGit2Sharp" AfterTargets="Build">
+    <ItemGroup>
+      <LibGit2Sharp Include="$(USERPROFILE)\.nuget\packages\libgit2sharp\0.26.2\lib\netstandard2.0\*.dll" />
+      <LibGit2SharpNative Include="$(USERPROFILE)/.nuget/packages/libgit2sharp.nativebinaries/2.0.306/runtimes/win-x64/native/*.dll" />
+      <Newtonsoft Include="$(USERPROFILE)/.nuget/packages/newtonsoft.json/12.0.3/lib/netstandard2.0/*.dll" />
+    </ItemGroup>
+    <Message Text="Copy libgit2sharp binaries @(LibGit2Sharp)" />
+    <Copy
+      SourceFiles="@(LibGit2Sharp)"
+      DestinationFolder="lib/netstandard2.0"/>
+    <Copy
+      SourceFiles="@(Newtonsoft)"
+      DestinationFolder="lib/netstandard2.0"/>
+    <Copy
+      SourceFiles="@(LibGit2SharpNative)"
+      DestinationFolder="lib/netstandard2.0"/>
+  </Target>
+  <Target Name="CleanLibGit2Sharp" AfterTargets="Clean">
+    <Message Text="Delete libgit2sharp" />
+    <RemoveDir Directories="lib" />
+  </Target>
 </Project>

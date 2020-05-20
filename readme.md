@@ -1,30 +1,34 @@
-# Microsoft.Bot.Builder.Tools
+# Micrsooft.Bot.Builder.Tools
 
-Helper routes for [Microsoft.Bot.Builder][bot-builder-git] based bot
+Dotnet core developer tools to make building and deploying Azure Bot Services friction free. Here are addon NuGet packages and extensions that will make Dotnet core developers more productive at building and deploying Azure Bot Services.
 
-1. /emulator to open livechat with installed bot emulator
-1. /source to redirect to the git repo/commit that is deployed
-
-## Get started
+## F5 just works
 
 ```bash
-dotnet add {your-bot.csproj} package Microsoft.Bot.Builder.Tools
+dotnet add package Microsoft.Bot.Builder.Tools.Web
 ```
 
-Update <code>Properties/launchSettings.json</code> to set launchUrl to '/emulator', like below.
+This adds a new route <code>/emulator</code> to the bot project and with <code>launchUrl</code> in <code>launchSettings.json</code> set will make <code>F5</code> from Visual Studio launch the livechat in [Bot-Emulator]
 
-```json
-{
-    "profiles": {
-        "IIS Express": {
-        "commandName": "IISExpress",
-        "launchBrowser": true,
-        "launchUrl": "emulator",
-        "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "Development"
-        }
-    }
-}
+See [Microsoft.Bot.Builder.Tools.Web](.\Web) for details
+
+## Source code just works
+
+```bash
+dotnet add package Microsoft.Bot.Builder.Tools.Build
 ```
 
-[bot-builder-git]: https://github.com/microsoft/botbuilder-dotnet.git
+This adds build targets to will auto update the published <code>appSettings.json</code> that will let the bot project rediret route <code>'/source'</code> to any source code hosting repo
+
+
+See [Microsoft.Bot.Builder.Tools.Web](.\Web) for details
+
+## Deploy just works
+
+```bash
+call az extension add --source Botappextension/dist/botappextension-0.0.2-py2.py3-none-any.whl
+```
+
+This add custom <code>az-cli</code> to make deploying Dotnet core bot to web app a simple code
+
+See [Az-Cli-BotApp-Extension](.\Botappextension) for details

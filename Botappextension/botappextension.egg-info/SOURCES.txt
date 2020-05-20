@@ -1,0 +1,9 @@
+setup.cfg
+setup.py
+azext_botappextension/__init__.py
+azext_botappextension/_params.py
+azext_botappextension/_utils.py
+botappextension.egg-info/PKG-INFO
+botappextension.egg-info/SOURCES.txt
+botappextension.egg-info/dependency_links.txt
+botappextension.egg-info/top_level.txt

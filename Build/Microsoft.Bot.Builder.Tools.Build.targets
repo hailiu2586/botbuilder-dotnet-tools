@@ -1,16 +1,25 @@
 <Project>
   <PropertyGroup>
-        <BotBuilderToolsAssemblyFile>$( [System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\..\lib\netstandard2.0\Microsoft.Bot.Builder.Tools.Build.dll</BotBuilderToolsAssemblyFile>
+    <BotBuilderToolsAssemblyFile>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\..\lib\netstandard2.0\Microsoft.Bot.Builder.Tools.Build.dll))</BotBuilderToolsAssemblyFile>
+    <BuilderOSDescription>$([System.Runtime.InteropServices.RuntimeInformation]::OSDescription)</BuilderOSDescription>
+    <BuilderWindowsArchitecture Condition="$(BuilderOSDescription.StartsWith('Microsoft Windows'))">$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</BuilderWindowsArchitecture>
   </PropertyGroup>
-  <UsingTask AssemblyFile="$(BotBuilderToolsAssemblyFile)" TaskName="Microsoft.Bot.Builder.Tools.Build.UpdateAppSettingsTask" />
-  <Target Name="ExtractCodeAction" BeforeTargets="Publish">
-      <Message Text="Update appsettings"/>
-      <UpdateAppSettingsTask ProjectDirectory="$(MSBuildProjectDirectory)" AppSettingsFile="$(OutputPath)\appSettings.json" />
+  <UsingTask AssemblyFile="$(BotBuilderToolsAssemblyFile)" TaskName="Microsoft.Bot.Builder.Tools.Build.UpdateAppSettingsTask" Condition=" '$(BuilderWindowsArchitecture)'=='X64' "/>
+  <Target Name="SetSourceUrl" AfterTargets="Build" Condition=" '$(BuilderWindowsArchitecture)'=='X64' ">
+      <Message Text="Update appsettings $(OutputPath)appSettings.json" />
+      <UpdateAppSettingsTask ProjectDirectory="$(MSBuildProjectDirectory)" AppSettingsFile="$(OutputPath)appSettings.json" />
   </Target>
-  <Target Name="ZipPublishFolder" AfterTargets="Publish">
-        <ZipDirectory
-            SourceDirectory="$(OutputPath)\publish"
-            Overwrite="true"
-            DestinationFile="$(OutputPath)\$(ProjectName).zip" />
+  <Target Name="CopyAppSettingsToPublish" AfterTargets="SetSourceUrl" BeforeTargets="ZipPublishFolder">
+      <Copy
+        Condition=" '$(BuilderWindowsArchitecture)'=='X64' "
+        SourceFiles="$(OutputPath)appSettings.json"
+        DestinationFolder="$(OutputPath)\publish"/>
+  </Target>
+  <Target Name="ZipPublishFolder" AfterTargets="_TransformWebConfig">
+      <Message Text="Update appsettings $(BuilderOSDescription) $(BuilderWindowsArchitecture)"/>
+      <ZipDirectory
+          SourceDirectory="$(OutputPath)\publish"
+          Overwrite="true"
+          DestinationFile="$(OutputPath)\$(ProjectName).zip" />
   </Target>
 </Project>

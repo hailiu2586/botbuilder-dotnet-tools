@@ -18,12 +18,16 @@ namespace Microsoft.Bot.Builder.Tools.Build
             var sourceUrl = GetSourceUrl(ProjectDirectory);
             if (string.IsNullOrEmpty(sourceUrl))
             {
+                Log.LogWarning($"{ProjectDirectory} not a repo");
                 return false;
             }
+            Log.LogMessage($"set source url to {sourceUrl}");
             JObject settings = null;
 
+            Log.LogMessage($"Opening {AppSettingsFile}");
             using (var stm = new FileStream(AppSettingsFile, FileMode.Open, FileAccess.Read))
             {
+                Log.LogMessage($"read {AppSettingsFile}");
                 using (var reader = new StreamReader(stm))
                 {
                     var jsonText = reader.ReadToEnd();
@@ -31,9 +35,10 @@ namespace Microsoft.Bot.Builder.Tools.Build
                     var prevValue = settings.SelectToken("AzureBotService/SourceUrl")?.Value<string>();
                     if (!string.IsNullOrEmpty(prevValue))
                     {
+                        Log.LogMessage($"AzureBotService/SourceUrl already set to {prevValue}");
                         return false;
                     }
-                    settings.Merge(new { AzureBotService = new { SourceUrl = sourceUrl } });
+                    settings.Merge(JObject.FromObject(new { AzureBotService = new { SourceUrl = sourceUrl } }));
                 }
             }
 
@@ -43,6 +48,7 @@ namespace Microsoft.Bot.Builder.Tools.Build
                 using (var writer = new StreamWriter(stm))
                 {
                     writer.Write(text);
+                    Log.LogMessage($"Written {AppSettingsFile} with \n{text}");
                 }
             }
 
