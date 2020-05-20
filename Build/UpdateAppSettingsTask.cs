@@ -1,0 +1,52 @@
+﻿using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.Build.Utilities;
+using Newtonsoft.Json.Linq;
+using static Microsoft.Bot.Builder.Tools.Build.GitExtensions;
+
+namespace Microsoft.Bot.Builder.Tools.Build
+{
+    public class UpdateAppSettingsTask : Task
+    {
+        public string ProjectDirectory { get; set; }
+        public string AppSettingsFile { get; set; }
+
+        public override bool Execute()
+        {
+            var sourceUrl = GetSourceUrl(ProjectDirectory);
+            if (string.IsNullOrEmpty(sourceUrl))
+            {
+                return false;
+            }
+            JObject settings = null;
+
+            using (var stm = new FileStream(AppSettingsFile, FileMode.Open, FileAccess.Read))
+            {
+                using (var reader = new StreamReader(stm))
+                {
+                    var jsonText = reader.ReadToEnd();
+                    settings = JObject.Parse(jsonText);
+                    var prevValue = settings.SelectToken("AzureBotService/SourceUrl")?.Value<string>();
+                    if (!string.IsNullOrEmpty(prevValue))
+                    {
+                        return false;
+                    }
+                    settings.Merge(new { AzureBotService = new { SourceUrl = sourceUrl } });
+                }
+            }
+
+            var text = settings.ToString(Newtonsoft.Json.Formatting.Indented);
+            using (var stm = new FileStream(AppSettingsFile, FileMode.OpenOrCreate, FileAccess.Write))
+            {
+                using (var writer = new StreamWriter(stm))
+                {
+                    writer.Write(text);
+                }
+            }
+
+            return true;
+        }
+    }
+}

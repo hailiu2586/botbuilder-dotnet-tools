@@ -1,0 +1,14 @@
+@model EmulatorModel
+@using Microsoft.BotBuilder.Tools.Models;
+<html>
+<body>
+    <h2>Opening bot emulator</h2>
+
+<script type="text/javascript">
+    setTimeout(function() {
+        window.location = '@(Model.DownloadUrl)'
+    }, 10000);
+    window.location='@(Model.OpenUrl)';
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+        <BotBuilderToolsAssemblyFile>$( [System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\..\lib\netstandard2.0\Microsoft.Bot.Builder.Tools.Build.dll</BotBuilderToolsAssemblyFile>
+  </PropertyGroup>
+  <UsingTask AssemblyFile="$(BotBuilderToolsAssemblyFile)" TaskName="Microsoft.Bot.Builder.Tools.Build.UpdateAppSettingsTask" />
+  <Target Name="ExtractCodeAction" BeforeTargets="Publish">
+      <Message Text="Update appsettings"/>
+      <UpdateAppSettingsTask ProjectDirectory="$(MSBuildProjectDirectory)" AppSettingsFile="$(OutputPath)\appSettings.json" />
+  </Target>
+  <Target Name="ZipPublishFolder" AfterTargets="Publish">
+        <ZipDirectory
+            SourceDirectory="$(OutputPath)\publish"
+            Overwrite="true"
+            DestinationFile="$(OutputPath)\$(ProjectName).zip" />
+  </Target>
+</Project>
