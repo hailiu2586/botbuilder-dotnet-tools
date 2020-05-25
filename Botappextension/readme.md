@@ -55,5 +55,20 @@ Global Arguments
 
 Since this is an <code>az-cli</code> extension, it can be easily integrated into any DevOps pipeline with <code>az-cli</code> support which includes [Azure DevOps][Azure-DevOps-Az-Cli]
 
+## Future works
+
+### Create botapp
+
+```bash
+# call az rest --method POST --uri https://graph.windows.net/myorganization/applications?api-version=1.6 --body @botapp.json
+# to create bot appId and password pair
+az botapp create --name {bot-Name} --query applicationId --output tsv
+```
+
+### clone LUIS app
+
+```bash
+az botapp luis [clone|train|publish] --name
+```
 
 [Azure-DevOps-Az-Cli]: https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/deploy/azure-cli?view=azure-devops
