@@ -1,8 +1,8 @@
 {
-    "displayName": "{{bot-id-name}}",
+    "displayName": "botty-526",
     "availableToOtherTenants": true,
     "passwordCredentials": [{
-        "endDate": "{{expiry}}",
-        "value": "{{password}}"
+        "endDate": "2025-12-31T12:00Z",
+        "value": "ZWzaLy7CbKvkm/8CVRUZZw=="
     }]
 }
