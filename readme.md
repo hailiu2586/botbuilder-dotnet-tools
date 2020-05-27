@@ -2,6 +2,10 @@
 
 Dotnet core developer tools to make building and deploying Azure Bot Services friction free. Here are addon NuGet packages and extensions that will make Dotnet core developers more productive at building and deploying Azure Bot Services.
 
+## Demo project
+
+https://github.com/microsoft/BotBuilder-Samples/tree/hailiu/arm-deploy/samples/csharp_dotnetcore/adaptive-dialog/20.EchoBot-declarative
+
 ## F5 just works
 
 ```bash
@@ -26,7 +30,7 @@ See [Microsoft.Bot.Builder.Tools.Web](.\Web) for details
 ## Deploy just works
 
 ```bash
-call az extension add --source Botappextension/dist/botappextension-0.0.2-py2.py3-none-any.whl
+az extension add --source Botappextension/dist/botappextension-0.0.2-py2.py3-none-any.whl
 ```
 
 This add custom <code>az-cli</code> to make deploying Dotnet core bot to web app a simple code
