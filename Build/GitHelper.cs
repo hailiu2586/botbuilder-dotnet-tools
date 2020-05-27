@@ -32,12 +32,13 @@ namespace Microsoft.Bot.Builder.Tools.Build
             }
 
             var baseUri = remoteUrl.AsHttpsGitUrl();
-            var relPath = dirPath.Substring(repoDir.Length + 1);
+            var relPath = repoDir.Length < dirPath.Length ? dirPath.Substring(repoDir.Length + 1) : "";
             var branch = repo.Head.FriendlyName;
 
             if (baseUri.IsGithubUri())
             {
                 relPath = $"/tree/{branch}/{relPath}";
+                relPath = relPath.TrimEnd('/');
             }
 
             if (baseUri.IsVsoUri())
@@ -65,18 +66,25 @@ namespace Microsoft.Bot.Builder.Tools.Build
         }
 
         private static Regex gitProtocolParts = new Regex("^git@(?<host>[^:]+):(?<namespace>[^\\/]+){0,1}(?<repo>.*)\\.git$");
+        private static Regex httpsGithubParts = new Regex("^https:\\/\\/(?<host>[^:\\/]+)\\/(?<namespace>[^\\/]+){0,1}(?<repo>.*).git$");
 
         private static bool IsGithubUri(this Uri uri) => uri.Host == "github.com";
         private static bool IsVsoUri(this Uri uri) => uri.Host.EndsWith(".visualstudio.com");
 
         public static Uri AsHttpsGitUrl(this string repoUrl) {
+            Match match;
             if (repoUrl.StartsWith("https://"))
             {
+                match = httpsGithubParts.Match(repoUrl);
+                if (match?.Success == true)
+                {
+                    return new Uri($"https://{match.Groups["host"]}/{match.Groups["namespace"]}{match.Groups["repo"]}");
+                }
                 return new Uri(repoUrl);
             }
 
-            var match = gitProtocolParts.Match(repoUrl);
-            if (match != null)
+            match = gitProtocolParts.Match(repoUrl);
+            if (match?.Success == true)
             {
                 return new Uri($"https://{match.Groups["host"]}/{match.Groups["namespace"]}{match.Groups["repo"]}");
             }

@@ -60,9 +60,9 @@ Since this is an <code>az-cli</code> extension, it can be easily integrated into
 ### Create botapp
 
 ```bash
-# call az rest --method POST --uri https://graph.windows.net/myorganization/applications?api-version=1.6 --body @botapp.json
+# call az rest --method POST --uri https://graph.windows.net/myorganization/applications?api-version=1.6 --body @botapp.json --query appId
 # to create bot appId and password pair
-az botapp create --name {bot-Name} --query applicationId --output tsv
+az botapp create --name {bot-Name} --query appId --output tsv
 ```
 
 ### clone LUIS app

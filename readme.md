@@ -30,7 +30,7 @@ See [Microsoft.Bot.Builder.Tools.Web](.\Web) for details
 ## Deploy just works
 
 ```bash
-call az extension add --source Botappextension/dist/botappextension-0.0.2-py2.py3-none-any.whl
+az extension add --source Botappextension/dist/botappextension-0.0.2-py2.py3-none-any.whl
 ```
 
 This add custom <code>az-cli</code> to make deploying Dotnet core bot to web app a simple code
