@@ -1,5 +1,11 @@
-# login with assigned identity
-az login
+#!/bin/bash
+
+# login with assigned identity if set
+if [ "$AZ_USER_ASSIGNED_IDENTITY" = "" ]; then
+    az login
+else
+    az login --identity
+fi
 # set default susbscription
 az account set -s $AZ_SUB_ID
 # set default resource group
@@ -18,3 +24,5 @@ export AZ_LUIS_ACCOUNT=`az cognitiveservices account list --query "[?kind=='LUIS
 export AZ_LUIS_API_ROOT=`az cognitiveservices account list --query "[?kind=='LUIS.Authoring'].endpoint|[0]" --output tsv`
 # get LUIS authoring key
 export AZ_LUIS_API_KEY=`az rest --uri $AZ_LUIS_ACCOUNT/listKeys?api-version=2017-04-18 --method POST --query key1 --output tsv`
+# call bf-config to further setup bf-cli
+/scripts/bf-config.sh
