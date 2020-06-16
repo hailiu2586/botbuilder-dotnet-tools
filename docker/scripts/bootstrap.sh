@@ -14,10 +14,12 @@ az configure --default group=$AZ_GROUP_NAME
 export AZ_EXPIRY=$(date -d@"$(( `date +%s`+7200))" -u -Iseconds | sed -e s/UTC$/Z/g)
 # get storage account id
 export AZ_STORAGE_ACCOUNT=`az storage account list --query [0].id --output tsv`
+# get storage account name
+export AZ_STORAGE_ACCOUNT_NAME=`az storage account list --query [0].name --output tsv`
 # find storage end point
 export AZ_BLOB_ROOT=`az storage account list --query [0].primaryEndpoints.blob --output tsv`
 # get rw SAS token
-export AZ_BLOB_SAS=`az storage account generate-sas --ids $AZ_STORAGE_ACCOUNT --expiry $AZ_EXPIRY --permissions wcar --resource-type o --services b --https-only`
+export AZ_BLOB_SAS=`az storage account generate-sas --ids $AZ_STORAGE_ACCOUNT --expiry $AZ_EXPIRY --permissions wcar --resource-type o --services b --https-only --output tsv`
 # find LUIS.authoring account
 export AZ_LUIS_ACCOUNT=`az cognitiveservices account list --query "[?kind=='LUIS.Authoring'].id|[0]" --output tsv`
 # get LUIS api endpoint
