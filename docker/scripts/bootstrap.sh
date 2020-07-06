@@ -26,5 +26,12 @@ export AZ_LUIS_ACCOUNT=`az cognitiveservices account list --query "[?kind=='LUIS
 export AZ_LUIS_API_ROOT=`az cognitiveservices account list --query "[?kind=='LUIS.Authoring'].endpoint|[0]" --output tsv`
 # get LUIS authoring key
 export AZ_LUIS_API_KEY=`az rest --uri $AZ_LUIS_ACCOUNT/listKeys?api-version=2017-04-18 --method POST --query key1 --output tsv`
+# set default BOT_ARTIFACT_SUFFIX to 'dev'
+export BOT_ARTIFACT_SUFFIX=${BOT_ARTIFACT_SUFFIX:=dev}
+# get QnA account
+export AZ_QNA_ACCOUNT=`az cognitiveservices account list --query "[?kind=='QnAMaker'].id|[0]" --output tsv`
+# get QnA endpoint key
+export AZ_QNA_SUB_KEY=`az rest --uri $AZ_QNA_ACCOUNT/listKeys?api-version=2017-04-18 --method POST --query key1 --output tsv`
+export AZ_QNA_HOSTNAME=`az rest --uri $AZ_QNA_ACCOUNT?api-version=2017-04-18 --method GET --query properties.apiProperties.qnaRuntimeEndpoint --output tsv`
 # call bf-config to further setup bf-cli
 /scripts/bf-config.sh

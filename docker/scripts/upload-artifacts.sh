@@ -6,7 +6,7 @@ if [ "$AZ_STORAGE_ACCOUNT" = ""]; then
    exit
 fi
 
-BOT_BUILT_ARTIFACT=${BOT_ARTIFACT%.zip}-built.zip
+BOT_BUILT_ARTIFACT=${BOT_ARTIFACT%.zip}-built-$BOT_ARTIFACT_SUFFIX.zip
 # zip /bot ot new zip
 mkdir -p /built
 touch /built/bot-build.zip
