@@ -17,3 +17,7 @@ popd
 
 # upload the bob-build.zip to storage blob
 az storage blob upload --container-name artifacts --name $BOT_BUILT_ARTIFACT --file /built/bot-build.zip --account-name $AZ_STORAGE_ACCOUNT_NAME
+
+# update the bot web app with the new zip package
+echo Update bot app runtime
+/scripts/update-botapp.sh $BOT_BUILT_ARTIFACT
