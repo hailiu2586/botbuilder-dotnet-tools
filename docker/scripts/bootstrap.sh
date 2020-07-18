@@ -6,6 +6,9 @@ if [ "$AZ_USER_ASSIGNED_IDENTITY" = "" ]; then
 else
     az login --identity
 fi
+
+# set az cloud related settings
+export AZ_ARM_RESOURCE=`az cloud show --query endpoints.management --output tsv`
 # set default susbscription
 az account set -s $AZ_SUB_ID
 # set default resource group
@@ -26,6 +29,8 @@ export AZ_LUIS_ACCOUNT=`az cognitiveservices account list --query "[?kind=='LUIS
 export AZ_LUIS_API_ROOT=`az cognitiveservices account list --query "[?kind=='LUIS.Authoring'].endpoint|[0]" --output tsv`
 # get LUIS authoring key
 export AZ_LUIS_API_KEY=`az rest --uri $AZ_LUIS_ACCOUNT/listKeys?api-version=2017-04-18 --method POST --query key1 --output tsv`
+# get LUIS runtime account
+export AZ_LUIS_RUNTIME_ACCOUNT=`az cognitiveservices account list --query "[?kind=='LUIS'].name|[0]" --output tsv`
 # set default BOT_ARTIFACT_SUFFIX to 'dev'
 export BOT_ARTIFACT_SUFFIX=${BOT_ARTIFACT_SUFFIX:=dev}
 # get QnA account

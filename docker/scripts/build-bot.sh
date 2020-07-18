@@ -9,6 +9,12 @@ bf luis:build -i /bot/Dialogs -o /bot/Dialogs/generated --botName=$BOT_NAME --de
 LUIS_ACCOUNT=`az cognitiveservices account list  --query "[?kind=='LUIS']|[0].id" --output tsv`
 { az cognitiveservices account list  --query "[?kind=='LUIS']|[0].{LuisAPIHostName:endpoint}"; az rest --uri $LUIS_ACCOUNT/listKeys?api-version=2017-04-18 --method POST --query "{LuisAPIKey:key1}"; }  | jq -s '.[0] * .[1]' > /bot/Dialogs/generated/luis.key.json
 
+# create luis runtime settings json
+echo {} | jq ".azureSubscriptionId=\"`az account show --query id --output tsv`\"" | jq ".resourceGroup=\"$AZ_GROUP_NAME\"" | jq ".accountName=\"$AZ_LUIS_RUNTIME_ACCOUNT\"" > /bot/Dialogs/generated/luis.runtime.json
+# assign luis runtime account to apps
+cat /bot/Dialogs/generated/luis.settings.root.westus.json | jq -r .luis[] | xargs -i -t /scripts/luis-set-rt.sh {}
+
+
 # flatten out qna files into /bot/Dialogs/qna-staging
 echo Start building any QnA artifacts
 mkdir -p /bot/Dialogs/_qna-staging
