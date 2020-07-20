@@ -12,7 +12,7 @@ mkdir -p /built
 touch /built/bot-build.zip
 rm /built/bot-build.zip
 pushd /bot
-zip -r /built/bot-build.zip .
+zip -r /built/bot-build.zip . > /dev/null
 popd
 
 # upload the bob-build.zip to storage blob

@@ -11,4 +11,4 @@ mkdir -p $(dirname /zip/$BOT_ARTIFACT)
 curl -f -o /zip/$BOT_ARTIFACT "$AZ_BLOB_ROOT"artifacts/$BOT_ARTIFACT?$AZ_BLOB_SAS
 
 # unzip
-unzip /zip/$BOT_ARTIFACT -d /bot
+unzip /zip/$BOT_ARTIFACT -d /bot > /dev/null
