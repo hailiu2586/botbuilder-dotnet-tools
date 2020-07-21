@@ -3,11 +3,12 @@
     <BotBuilderToolsAssemblyFile>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\..\lib\netstandard2.0\Microsoft.Bot.Builder.Tools.Build.dll))</BotBuilderToolsAssemblyFile>
     <BuilderOSDescription>$([System.Runtime.InteropServices.RuntimeInformation]::OSDescription)</BuilderOSDescription>
     <BuilderWindowsArchitecture Condition="$(BuilderOSDescription.StartsWith('Microsoft Windows'))">$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)</BuilderWindowsArchitecture>
+    <CanSetSourceUrl Condition=" '$(BuilderWindowsArchitecture)'=='X64' AND '$(BuildingInsideVisualStudio)'!='true' ">true</CanSetSourceUrl>
   </PropertyGroup>
   <UsingTask AssemblyFile="$(BotBuilderToolsAssemblyFile)" TaskName="Microsoft.Bot.Builder.Tools.Build.UpdateAppSettingsTask" Condition=" '$(BuilderWindowsArchitecture)'=='X64' "/>
   <Target Name="SetSourceUrl" AfterTargets="Build" Condition=" '$(BuilderWindowsArchitecture)'=='X64' ">
-      <Message Text="Update appsettings $(OutputPath)appSettings.json" />
-      <UpdateAppSettingsTask ProjectDirectory="$(MSBuildProjectDirectory)" AppSettingsFile="$(OutputPath)appSettings.json" />
+      <Message Text="Update appsettings $(OutputPath)appSettings.json" Condition=" '$(CanSetSourceUrl)'=='true' "/>
+      <UpdateAppSettingsTask ProjectDirectory="$(MSBuildProjectDirectory)" AppSettingsFile="$(OutputPath)appSettings.json" Condition=" '$(CanSetSourceUrl)'=='true' "/>
   </Target>
   <Target Name="CopyAppSettingsToPublish" AfterTargets="SetSourceUrl" BeforeTargets="ZipPublishFolder">
       <Copy

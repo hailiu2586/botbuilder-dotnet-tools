@@ -19,6 +19,12 @@ This injects the following build targets into the bot csproj:
 
    Only Windows x64 platform is supported for now until we work through cross-platform issue with [LibGit2Sharp.NativeBinaries]
 
+## Build Microsoft.Bot.Builder.Tools.Build
+
+```bash
+dotnet pack Microsoft.Bot.Builder.Tools.Build.csproj -o d:\packages
+```
+
 [dotnet-sdk]: https://www.nuget.org/packages/Microsoft.Bot.Builder
 [az-cli-botApp]: ../Botappextension
 [Microsoft.Bot.Builder.Tools.Web]: ../Web
