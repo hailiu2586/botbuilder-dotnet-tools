@@ -14,8 +14,11 @@
   <Target Name="CopyLibGit2Sharp" AfterTargets="Build">
     <ItemGroup>
       <LibGit2Sharp Include="$(USERPROFILE)\.nuget\packages\libgit2sharp\0.26.2\lib\netstandard2.0\*.dll" />
-      <LibGit2SharpNative Include="$(USERPROFILE)/.nuget/packages/libgit2sharp.nativebinaries/2.0.306/runtimes/win-x64/native/*.dll" />
+      <LibGit2SharpNative Include="$(USERPROFILE)/.nuget/packages/libgit2sharp.nativebinaries/2.0.306/runtimes/**/*.*" />
       <Newtonsoft Include="$(USERPROFILE)/.nuget/packages/newtonsoft.json/12.0.3/lib/netstandard2.0/*.dll" />
+      <LibGit2SharpNativeNetFxX86 Include="$(USERPROFILE)/.nuget/packages/libgit2sharp.nativebinaries/2.0.306/runtimes/win-x86/**/*.dll" />
+      <LibGit2SharpNativeNetFxX64 Include="$(USERPROFILE)/.nuget/packages/libgit2sharp.nativebinaries/2.0.306/runtimes/win-x64/**/*.dll" />
+
     </ItemGroup>
     <Message Text="Copy libgit2sharp binaries @(LibGit2Sharp)" />
     <Copy
@@ -26,7 +29,13 @@
       DestinationFolder="lib/netstandard2.0"/>
     <Copy
       SourceFiles="@(LibGit2SharpNative)"
-      DestinationFolder="lib/netstandard2.0"/>
+      DestinationFiles="lib/runtimes/%(RecursiveDir)%(FileName)%(Extension)"/>
+    <Copy
+      SourceFiles="@(LibGit2SharpNativeNetFxX86)"
+      DestinationFolder="lib/runtimes/netFx/x86" />
+    <Copy
+      SourceFiles="@(LibGit2SharpNativeNetFxX64)"
+      DestinationFolder="lib/runtimes/netFx/x64" />
   </Target>
   <Target Name="CleanLibGit2Sharp" AfterTargets="Clean">
     <Message Text="Delete libgit2sharp" />

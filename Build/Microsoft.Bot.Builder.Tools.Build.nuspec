@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Microsoft.Bot.Builder.Tools.Build</id>
-    <version>1.0.26</version>
+    <version>1.0.28</version>
     <authors>Microsoft</authors>
     <description>Microsoft.Bot.Builder.Tools.Build</description>
   </metadata>
@@ -18,6 +18,6 @@
   <files>
     <file src="bin/Debug/netstandard2.0/Microsoft.Bot.Builder.Tools.Build.dll" target="lib/netstandard2.0/" />
     <file src="Microsoft.Bot.Builder.Tools.Build.targets" target="build/netcoreapp3.1/Microsoft.Bot.Builder.Tools.Build.targets" />
-    <file src="lib/**/*.dll" />
+    <file src="lib/**/*.*" />
   </files>
 </package>

@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LibGit2Sharp;
@@ -9,6 +11,60 @@ namespace Microsoft.Bot.Builder.Tools.Build
 {
     public static class GitExtensions
     {
+        public static string GetOSPrefix()
+        {
+            var checks = new [] {
+                (OSPlatform.Windows, "win"),
+                (OSPlatform.OSX, "osx"),
+                (OSPlatform.Linux, "linux")
+            };
+            var match = checks.FirstOrDefault(x => RuntimeInformation.IsOSPlatform(x.Item1));
+
+            return match.Item2;
+        }
+
+        public static bool IsNetFx()
+        {
+            var fxDescription = RuntimeInformation.FrameworkDescription;
+            return fxDescription.StartsWith(".NET Framework");
+        }
+
+        public static string GetAssemblyFolder(Assembly assembly)
+        {
+            var managedPath = (assembly ?? Assembly.GetExecutingAssembly()).CodeBase;
+            if (managedPath == null)
+            {
+                managedPath = Assembly.GetExecutingAssembly().Location;
+            }
+            else if (managedPath.StartsWith("file:///"))
+            {
+                managedPath = managedPath.Substring(8).Replace('/', '\\');
+            }
+            else if (managedPath.StartsWith("file://"))
+            {
+                managedPath = @"\\" + managedPath.Substring(7).Replace('/', '\\');
+            }
+
+            managedPath = Path.GetDirectoryName(managedPath);
+            return managedPath;
+        }
+
+        public static string GetLibGit2NativeLibraryPath()
+        {
+            var osAndArchitecture = $"{GetOSPrefix()}-{RuntimeInformation.ProcessArchitecture}";
+            var curFolder = GetAssemblyFolder(null);
+            var nativePath = $"../runtimes/{osAndArchitecture.ToLowerInvariant()}/native";
+            var netFxPath = "../runtimes/netFx";
+
+            return Path.GetFullPath(Path.Combine(curFolder, IsNetFx() ? netFxPath : nativePath));
+        }
+
+        private static Lazy<string> SetupLibGit2Sharp = new Lazy<string>(() => {
+            var result = GetLibGit2NativeLibraryPath();
+            LibGit2Sharp.GlobalSettings.NativeLibraryPath = result;
+            return result;
+        });
+
         /// <summary>
         /// Get the Git repo url that can be loaded in a browser to show the
         /// the source files pointed in 'dirPath'
@@ -17,6 +73,7 @@ namespace Microsoft.Bot.Builder.Tools.Build
         /// <returns>absolute url points to the remote origin and tree path</returns>
         public static string GetSourceUrl(string dirPath)
         {
+            var _ = SetupLibGit2Sharp.Value;
             var repoDir = FindRepoRoot(dirPath);
             if (string.IsNullOrEmpty(repoDir))
             {
