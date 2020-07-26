@@ -19,10 +19,14 @@ export AZ_EXPIRY=$(date -d@"$(( `date +%s`+7200))" -u -Iseconds | sed -e s/UTC$/
 export AZ_STORAGE_ACCOUNT=`az storage account list --query [0].id --output tsv`
 # get storage account name
 export AZ_STORAGE_ACCOUNT_NAME=`az storage account list --query [0].name --output tsv`
+# get storage account key
+export AZ_STORAGE_ACCOUNT_KEY=`az rest --method POST --uri $AZ_STORAGE_ACCOUNT/listKeys?api-version=2017-10-01 --query keys[0].value --output tsv`
 # find storage end point
 export AZ_BLOB_ROOT=`az storage account list --query [0].primaryEndpoints.blob --output tsv`
 # get rw SAS token
 export AZ_BLOB_SAS=`az storage account generate-sas --ids $AZ_STORAGE_ACCOUNT --expiry $AZ_EXPIRY --permissions wcar --resource-type o --services b --https-only --output tsv`
+# get deployment artifacts SAS which has to include sv=2019-02-02
+export ARTIFACTS_SAS=`/scripts/generate-sas.sh emptyartifacts`
 # find LUIS.authoring account
 export AZ_LUIS_ACCOUNT=`az cognitiveservices account list --query "[?kind=='LUIS.Authoring'].id|[0]" --output tsv`
 # get LUIS api endpoint
