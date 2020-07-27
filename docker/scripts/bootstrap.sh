@@ -26,7 +26,11 @@ export AZ_BLOB_ROOT=`az storage account list --query [0].primaryEndpoints.blob -
 # get rw SAS token
 export AZ_BLOB_SAS=`az storage account generate-sas --ids $AZ_STORAGE_ACCOUNT --expiry $AZ_EXPIRY --permissions wcar --resource-type o --services b --https-only --output tsv`
 # get deployment artifacts SAS which has to include sv=2019-02-02
-export ARTIFACTS_SAS=`/scripts/generate-sas.sh emptyartifacts`
+if [ "$ARTIFACTS_SASURI" = "" ]; then
+    export ARTIFACTS_SASURI=`/scripts/generate-sas.sh artifacts`
+fi
+export ARTIFACTS_ROOT=`echo $ARTIFACTS_SASURI |  sed -e 's/^\(.*\)?.*$/\1/g'`
+export ARTIFACTS_SAS=`echo $ARTIFACTS_SASURI | sed -e 's/^[^?]*?\(.*\)$/\1/g'`
 # find LUIS.authoring account
 export AZ_LUIS_ACCOUNT=`az cognitiveservices account list --query "[?kind=='LUIS.Authoring'].id|[0]" --output tsv`
 # get LUIS api endpoint
