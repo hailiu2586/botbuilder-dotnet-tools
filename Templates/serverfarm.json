@@ -36,7 +36,7 @@
         },
         "serverFarmName": {
             "type": "string",
-            "value": "[varialbes('serverFarmName')]"
+            "value": "[variables('serverFarmName')]"
         }
     }
 }
