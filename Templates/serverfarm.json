@@ -33,6 +33,10 @@
         "serverFarmId": {
             "type": "string",
             "value": "[variables('serverFarmId')]"
+        },
+        "serverFarmName": {
+            "type": "string",
+            "value": "[varialbes('serverFarmName')]"
         }
     }
 }
