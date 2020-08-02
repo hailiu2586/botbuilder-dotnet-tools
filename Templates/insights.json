@@ -1,0 +1,46 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "va-insight-"
+        },
+        "uniqueSuffix": {
+            "type": "string",
+            "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "insightsName": "[concat(parameters('namePrefix'), parameters('uniqueSuffix'))]",
+        "insightsId": "[resourceId('Microsoft.Insights/components', variables('insightsName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Insights/components",
+            "comments": "Shared app insights",
+            "name": "[variables('insightsName')]",
+            "apiVersion": "2018-05-01-preview",
+            "location": "[variables('location')]",
+            "properties": {
+                "ApplicationId": "[variables('insightsName')]",
+                "Application_Type": "web"
+            }
+        }
+    ],
+    "outputs": {
+        "insightsName": {
+            "type": "string",
+            "value": "[variables('insightsName')]"
+        },
+        "insightsId": {
+            "type": "string",
+            "value": "[variables('insightsId')]"
+        },
+        "instrumentationKey": {
+            "type": "string",
+            "value": "[reference(variables('insightsId'), '2018-05-01-preview').InstrumentationKey]"
+        }
+    }
+}
