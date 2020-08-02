@@ -1,0 +1,38 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "va-runtime-farm-"
+        },
+        "uniqueSuffix": {
+            "type": "string",
+            "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "serverFarmName": "[concat(parameters('namePrefix'), parameters('uniqueSuffix'))]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverFarms', variables('serverFarmName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "comments": "shared runtime hosting server farm",
+            "apiVersion": "2018-02-01",
+            "name": "[variables('serverFarmName')]",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "P1v2",
+                "tier": "PremiumV2"
+            }
+        }
+    ],
+    "outputs": {
+        "serverFarmId": {
+            "type": "string",
+            "value": "[variables('serverFarmId')]"
+        }
+    }
+}
