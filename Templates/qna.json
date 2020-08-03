@@ -1,0 +1,106 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "va-qna-"
+        },
+        "uniqueSuffix": {
+            "type": "string",
+            "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        },
+        "serverFarmId": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "azureSearchName": "[concat(parameters('namePrefix'), 'search-', parameters('uniqueSuffix'))]",
+        "azureSearchId": "[resourceId('Microsoft.Search/searchServices', variables('azureSearchName'))]",
+        "qnaSiteName": "[concat(parameters('namePrefix'), 'site-', parameters('uniqueSuffix'))]",
+        "qnaSiteId": "[resourceId('Microsoft.Web/sites', variables('qnaSiteName'))]",
+        "qnaName": "[concat(parameters('namePrefix'), parameters('uniqueSuffix'))]",
+        "qnaId": "[resourceId('Microsoft.CognitiveServices/accounts', variables('qnaName'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('azureSearchName')]",
+            "comments": "shared QnA search",
+            "type": "Microsoft.Search/searchServices",
+            "apiVersion": "2015-08-19",
+            "location": "[variables('location')]",
+            "properties": {
+                "replicaCount": 1,
+                "partitionCount": 1,
+                "hostingMode": "Default"
+            },
+            "sku": {
+                "name": "standard"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2016-08-01",
+            "comments": "QnA runtime site",
+            "name": "[variables('qnaSiteName')]",
+            "location": "[variables('location')]",
+            "properties": {
+                "enabled": true,
+                "siteConfig": {
+                    "cors": {
+                        "allowedOrigins": [
+                            "*"
+                        ]
+                    }
+                },
+                "name": "[variables('qnaSiteName')]",
+                "serverFarmId": "[parameters('serverFarmId')]",
+                "hostingEnvironment": ""
+            },
+            "dependsOn": [],
+            "resources": [
+                {
+                    "apiVersion": "2015-08-01",
+                    "name": "appsettings",
+                    "type": "config",
+                    "dependsOn": [
+                        "[variables('qnaSiteName')]",
+                        "[variables('azureSearchId')]"
+                    ],
+                    "properties": {
+                        "AzureSearchName": "[variables('azureSearchName')]",
+                        "AzureSearchAdminKey": "[listAdminKeys(variables('azureSearchId'), '2015-08-19').primaryKey]",
+                        "PrimaryEndpointKey": "[concat(variables('qnaSiteName'), '-PrimaryEndpointKey')]",
+                        "SecondaryEndpointKey": "[concat(variables('qnaSiteName'), '-SecondaryEndpointKey')]",
+                        "DefaultAnswer": "No good match found in KB.",
+                        "QNAMAKER_EXTENSION_VERSION": "latest"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "kind": "QnAMaker",
+            "name": "[variables('qnaName')]",
+            "apiVersion": "2017-04-18",
+            "location": "westus",
+            "sku": {
+                "name": "S0"
+            },
+            "properties": {
+                "apiProperties": {
+                    "qnaRuntimeEndpoint": "[concat('https://',reference(variables('qnaSiteId')).hostNames[0])]"
+                },
+                "customSubDomainName": "[variables('qnaName')]"
+            },
+            "dependsOn": [
+                "[variables('qnaSiteId')]",
+                "[variables('azureSearchId')]"
+            ]
+        }
+    ],
+    "outputs": {
+
+    }
+}
