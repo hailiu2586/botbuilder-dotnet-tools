@@ -1,0 +1,118 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "va-deploy-"
+        },
+        "uniqueSuffix": {
+            "type": "string",
+            "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        },
+        "artifactsSasUrl": {
+            "type": "string",
+            "defaultValue": "https://botartifactswocgxn.blob.core.windows.net/artifacts?sv=2019-02-02&sp=rl&sr=c&st=2020-07-26&se=2030-07-24&sig=2ePX2wnWYt8%2B2z%2BzgUl2o5wBp5TlX8glGckLUog7Wgs%3D"
+        },
+        "artifactRoot": {
+            "type": "string",
+            "defaultValue": "empty-artifact"
+        },
+        "artifactTemplateName": {
+            "type": "string",
+            "defaultValue": "empty-service-unit.json"
+        },
+        "artifactParametersName": {
+            "type": "string",
+            "defaultValue": "empty-service-unit-parameters.json"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "artifactName": "[concat(parameters('namePrefix'), parameters('uniqueSuffix'))]",
+        "artifactId": "[resourceId('Microsoft.DeploymentManager/artifactSources', variables('artifactName'))]",
+        "topologyName": "[concat(parameters('namePrefix'), 'topology-', parameters('uniqueSuffix'))]",
+        "topologyId": "[resourceId('Microsoft.DeploymentManager/serviceTopologies', variables('topologyName'))]",
+        "serviceName": "[concat(parameters('namePrefix'), 'service-', parameters('uniqueSuffix'))]",
+        "serviceUnitName": "[concat(parameters('namePrefix'), 'service-unit-', parameters('uniqueSuffix'))]",
+        "serviceUnitId": "[resourceId('Microsoft.DeploymentManager/serviceTopologies/services/serviceUnits', variables('topologyName'), variables('serviceName'), variables('serviceUnitName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.DeploymentManager/artifactSources",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[variables('artifactName')]",
+            "location": "[variables('location')]",
+            "properties": {
+              "sourceType": "AzureStorage",
+              "artifactRoot": "[parameters('artifactRoot')]",
+              "authentication": {
+                "type": "SAS",
+                "properties": {
+                  "sasUri": "[parameters('artifactsSasUrl')]"
+                }
+              }
+            }
+        },
+        {
+            "type": "Microsoft.DeploymentManager/serviceTopologies",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[variables('topologyName')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+              "[variables('artifactName')]"
+            ],
+            "properties": {
+              "artifactSourceId": "[variables('artifactId')]"
+            },
+            "resources": [
+                {
+                    "type": "services",
+                    "apiVersion": "2018-09-01-preview",
+                    "name": "[variables('serviceName')]",
+                    "location": "[variables('location')]",
+                    "dependsOn": [
+                        "[variables('topologyName')]"
+                    ],
+                    "properties": {
+                      "targetSubscriptionId": "[subscription().subscriptionId]",
+                      "targetLocation": "[variables('location')]"
+                    },
+                    "resources": [
+                        {
+                            "type": "serviceUnits",
+                            "apiVersion": "2018-09-01-preview",
+                            "name": "[variables('serviceUnitName')]",
+                            "location": "[variables('location')]",
+                            "dependsOn": [
+                              "[variables('serviceName')]"
+                            ],
+                            "properties": {
+                              "targetResourceGroup": "[resourceGroup().name]",
+                              "deploymentMode": "Incremental",
+                              "artifacts": {
+                                "templateArtifactSourceRelativePath": "[parameters('artifactTemplateName')]",
+                                "parametersArtifactSourceRelativePath": "[parameters('artifactParametersName')]"
+                              }
+                            }
+                          }
+                    ]
+                  }
+            ]
+        }
+    ],
+    "outputs": {
+        "artifactId": {
+          "type": "string",
+          "value": "[variables('artifactId')]"
+        },
+        "topologyId": {
+            "type": "string",
+            "value": "[variables('topologyId')]"
+        },
+        "serviceUnitId": {
+            "type": "string",
+            "value": "[variables('serviceUnitId')]"
+        }
+    }
+}
