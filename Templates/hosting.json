@@ -4,7 +4,7 @@
     "variables": {
         "baseUri": "[deployment().properties.templateLink.uri]",
         "templates": [
-            "storage", "serverFarm", "role", "insights", "luis", "topology", "keyVault"
+            "storage", "serverfarm", "role", "insights", "luis", "topology", "keyVault"
         ]
     },
     "resources": [
@@ -29,7 +29,7 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2019-10-01",
             "name": "deploy-qna",
-            "dependsOn": ["deploy-serverFarm"],
+            "dependsOn": ["deploy-serverfarm"],
             "properties": {
               "mode": "Incremental",
               "templateLink": {
@@ -38,7 +38,7 @@
               },
               "parameters": {
                   "serverFarmId": {
-                      "value": "[reference('deploy-serverFarm').outputs.serverFarmId.value]"
+                      "value": "[reference('deploy-serverfarm').outputs.serverFarmId.value]"
                   }
               }
             }
@@ -47,7 +47,7 @@
     "outputs": {
         "hosting": {
             "type": "object",
-            "value": "[union(reference('deploy-storage').outputs, reference('deploy-serverFarm').outputs, reference('deploy-role').outputs, reference('deploy-insights').outputs, reference('deploy-luis').outputs, reference('deploy-topology').outputs, reference('deploy-keyVault').outputs, reference('deploy-qna').outputs)]"
+            "value": "[union(reference('deploy-storage').outputs, reference('deploy-serverfarm').outputs, reference('deploy-role').outputs, reference('deploy-insights').outputs, reference('deploy-luis').outputs, reference('deploy-topology').outputs, reference('deploy-keyVault').outputs, reference('deploy-qna').outputs)]"
         }
     }
 }
