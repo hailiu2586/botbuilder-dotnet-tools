@@ -1,0 +1,91 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "vastorage"
+        },
+        "uniqueSuffix": {
+            "type": "string",
+            "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        },
+        "signedExpiry": {
+            "type": "object",
+            "defaultValue": {
+                "signedExpiry": "[dateTimeAdd(utcNow('u'), 'P2Y')]"
+            }
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "storageName": "[concat(parameters('namePrefix'), parameters('uniqueSuffix'))]",
+        "storageId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+        "artifactsReadSasProperties":{
+            "signedServices": "b",
+            "signedPermission": "r",
+            "signedProtocol": "https",
+            "signedResourceTypes": "o"
+        }
+    },
+    "resources": [
+        {
+            "name": "[variables('storageName')]",
+            "comments": "storage account for hosting deployment artifacts and scripts",
+            "location": "[variables('location')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "kind": "StorageV2",
+            "properties": {
+                "accessTier": "Hot",
+                "supportsHttpsTrafficOnly": true,
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Allow",
+                    "ipRules": []
+                }
+            },
+            "sku": {
+                "name":"Standard_RAGRS"
+            },
+            "resources": [
+                {
+                    "name": "default/artifacts",
+                    "type": "blobServices/containers",
+                    "comments": "artifacts container",
+                    "apiVersion": "2019-06-01",
+                    "dependsOn": [
+                        "[variables('storageName')]"
+                    ]
+                },
+                {
+                    "name": "default/transcripts",
+                    "type": "blobServices/containers",
+                    "comments": "transcripts container",
+                    "apiVersion": "2019-06-01",
+                    "dependsOn": [
+                        "[variables('storageName')]"
+                    ]
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "storageName": {
+            "type": "string",
+            "value": "[variables('storageName')]"
+        },
+        "storageId": {
+            "type": "string",
+            "value": "[variables('storageId')]"
+        },
+        "storageSasToken": {
+            "type": "string",
+            "value": "[listAccountSas(variables('storageId'), '2018-07-01', union(variables('artifactsReadSasProperties'), parameters('signedExpiry'))).accountSasToken]"
+        },
+        "storageBlobEndpoint": {
+            "type": "string",
+            "value": "[reference(variables('storageId'), '2017-10-01', 'full').properties.primaryEndpoints.blob]"
+        }
+    }
+}
