@@ -37,6 +37,10 @@
         "keyVaultId": {
             "type": "string",
             "value": "[variables('keyVaultId')]"
+        },
+        "keyVaultName": {
+            "type": "string",
+            "value": "[variables('keyVaultName')]"
         }
     }
 }

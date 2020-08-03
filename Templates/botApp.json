@@ -1,0 +1,200 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "botId": {
+            "type": "string"
+        },
+        "botEnv": {
+            "type": "string",
+            "defaultValue": "prod",
+            "allowedValues": [
+                "prod", "scratch", "ppe", "usgovppe", "usgovprd"
+            ]
+        },
+        "displayName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "sku": {
+            "type": "string",
+            "defaultValue": "S1",
+            "allowedValues": [
+                "F0",
+                "S1"
+            ]
+        },
+        "msAppId": {
+            "type": "string"
+        },
+        "msAppPassword": {
+            "type": "string"
+        },
+        "hosting": {
+            "type": "object",
+            "metadata": {
+                "description": "outputs.hosting.value from deploying hosting.json"
+            }
+        },
+        "uniqueSuffix": {
+            "type": "string",
+            "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        }
+    },
+    "functions": [
+        {
+            "namespace": "ns",
+            "members": {
+                "keyValue": {
+                    "parameters": [
+                        {
+                            "name": "key",
+                            "type": "string"
+                        },
+                        {
+                            "name": "value",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "object",
+                        "value": "[json(concat('{\"', parameters('key'), '\": \"', parameters('value'), '\"}'))]"
+                    }
+                }
+            }
+
+        }
+    ],
+    "variables": {
+        "appPasswordSecret": "[concat(parameters('botId'), '-pwd-', variables('uniqueSuffix'))]",
+        "appPasswordSecretId": "[concat(parameters('hosting').keyVaultId.value, '/secrets/', variables('appPasswordSecret'))]",
+        "botAppSettingsMap": {
+            "scratch": {
+                "azureWebJobsBotFrameworkDirectLineEndpoint": "https://directline.scratch.botframework.com/",
+                "BotOpenIdMetadata": "https://login.scratch.botframework.com/v1/.well-known/openidconfiguration"
+            },
+            "ppe": {
+                "azureWebJobsBotFrameworkDirectLineEndpoint": "https://directline.ppe.botframework.com/",
+                "BotOpenIdMetadata": "https://login.ppe.botframework.com/v1/.well-known/openidconfiguration"
+            },
+            "prod": {
+            },
+            "core": {
+                "MicrosoftAppId": "[parameters('msAppId')]"
+            }
+        },
+        "botAppSettings": "[union(variables('botAppSettingsMap').core, variables('botAppSettingsMap')[parameters('botEnv')])]",
+        "botDisplayName": "[if(empty(parameters('displayName')), parameters('botId'), parameters('displayName'))]",
+        "botAppName": "[toLower(concat(parameters('botId'), '-', variables('uniqueSuffix')))]",
+        "botAppResId": "[resourceId('Microsoft.Web/sites', variables('botAppName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults/secrets",
+            "name": "[concat(parameters('hosting').keyVaultName.value, '/', variables('appPasswordSecret')]",
+            "condition": "[not(empty(parameters('msAppPassword')))]",
+            "apiVersion": "2019-09-01",
+            "dependsOn": [],
+            "properties": {
+                "value": "[parameters('msAppPassword')]"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "kind": "app",
+            "name": "[variables('botAppName')]",
+            "location": "[variables('location')]",
+            "dependsOn": [
+                "[variables('appPasswordSecretId')]"
+            ],
+            "properties": {
+                "serverFarmId": "[parameters('hosting').serverFarmId.value]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "resources": [
+                {
+                    "type": "config",
+                    "name": "appsettings",
+                    "location": "[variables('location')]",
+                    "apiVersion": "2018-11-01",
+                    "dependsOn": [
+                        "[variables('botAppName')]"
+                    ],
+                    "properties": "[union(variables('botAppSettings'), ns.keyValue('APPINSIGHTS_INSTRUMENTATIONKEY', parameters('hosting').instrumentationKey.value),  ns.keyValue('MicrosoftAppPassword', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appPasswordSecretId'), '2019-09-01', 'Full').properties.secretUriWithVersion, ')')))]"
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/slots",
+            "name": "[concat(variables('botAppName'),'/staging')]",
+            "location": "[variables('location')]",
+            "apiVersion": "2018-11-01",
+            "dependsOn": [
+                "[variables('botAppName')]"
+            ],
+            "properties": {
+                "serverFarmId": "[parameters('hosting').serverFarmId.value]",
+                "siteConfig": {
+                    "appSettings":[]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "name": "[concat(variables('botAppName'), '/slotConfigNames')]",
+            "dependsOn": [
+                "[variables('botAppName')]"
+            ],
+            "apiVersion": "2018-11-01",
+            "properties": {
+                "appSettingNames": [
+                    "MicrosoftAppId",
+                    "MicrosoftAppPassword"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.KeyVault/vaults/accessPolicies",
+            "name": "[parameters('hosting').keyVaultName.value, '/add')]",
+            "apiVersion": "2019-09-01",
+            "dependsOn": [
+                "[parameters('hosting').keyVaultName.value]",
+                "[variables('botAppResId')]"
+            ],
+            "properties": {
+                "accessPolicies" : [
+                {
+                    "tenantId": "[reference(variables('botAppResId'), '2019-08-01', 'Full').identity.tenantId]",
+                    "objectId": "[reference(variables('botAppResId'), '2019-08-01', 'Full').identity.principalId]",
+                    "permissions": {
+                        "secrets": [ "get" ]
+                    }
+                }]
+            }
+        },
+        {
+            "type": "Microsoft.BotService/botServices",
+            "name": "[parameters('botId')]",
+            "kind": "bot",
+            "apiVersion": "2018-07-12",
+            "location": "global",
+            "sku": {
+                "name": "[parameters('sku')]"
+            },
+            "dependsOn": [
+                "[variables('botAppName')]"
+            ],
+            "properties": {
+                "displayName": "[variables('botDisplayName')]",
+                "endpoint": "[concat('https://', reference(variables('botAppResId'), '2018-02-01', 'Full').properties.hostNames[0], '/api/messages')]",
+                "msaAppId": "[parameters('msAppId')]"
+            },
+            "tags": {
+                "hostedBy": "[resourceId('Microsoft.Web/sites', variables('botAppName'))]"
+            }
+        }
+    ]
+}
