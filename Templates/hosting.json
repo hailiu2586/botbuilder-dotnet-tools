@@ -1,0 +1,53 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "variables": {
+        "baseUri": "[deployment().properties.templateLink.uri]",
+        "templates": [
+            "storage", "serverFarm", "role", "insights", "luis", "topology", "keyVault"
+        ]
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "name": "[concat('deploy-', variables('templates')[copyIndex()])]",
+            "dependsOn": [],
+            "properties": {
+              "mode": "Incremental",
+              "templateLink": {
+                "uri": "[uri(variables('baseUri'), concat(variables('templates')[copyIndex()], '.json'))]",
+                "contentVersion":"1.0.0.0"
+              }
+            },
+            "copy": {
+                "name": "deployStep",
+                "count": "[length(variables('templates'))]"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "name": "deploy-qna",
+            "dependsOn": ["deploy-serverFarm"],
+            "properties": {
+              "mode": "Incremental",
+              "templateLink": {
+                "uri": "[uri(variables('baseUri'), 'qna.json')]",
+                "contentVersion":"1.0.0.0"
+              },
+              "parameters": {
+                  "serverFarmId": {
+                      "value": "[reference('deploy-serverFarm').outputs.serverFarmId.value]"
+                  }
+              }
+            }
+        }
+    ],
+    "outputs": {
+        "hosting": {
+            "type": "object",
+            "value": "[union(reference('deploy-storage').outputs, reference('deploy-serverFarm').outputs, reference('deploy-role').outputs, reference('deploy-insights').outputs, reference('deploy-luis').outputs, reference('deploy-topology').outputs, reference('deploy-keyVault').outputs, reference('deploy-qna').outputs)]"
+        }
+    }
+}

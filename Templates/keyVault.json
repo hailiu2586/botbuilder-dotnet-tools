@@ -1,0 +1,42 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "bot-secrets-"
+        },
+        "uniqueSuffix": {
+            "type": "string",
+            "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "keyVaultName": "[concat(parameters('namePrefix'), parameters('uniqueSuffix'))]",
+        "keyVaultId": "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "name": "[variables('keyVaultName')]",
+            "location": "[variables('location')]",
+            "apiVersion": "2019-09-01",
+            "properties": {
+                "tenantId": "[subscription().tenantId]",
+                "sku": {
+                    "family": "A",
+                    "name": "Standard"
+                },
+                "accessPolicies": [],
+                "enabledForTemplateDeployment": true
+            }
+        }
+    ],
+    "outputs": {
+        "keyVaultId": {
+            "type": "string",
+            "value": "[variables('keyVaultId')]"
+        }
+    }
+}
