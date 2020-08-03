@@ -196,5 +196,11 @@
                 "hostedBy": "[resourceId('Microsoft.Web/sites', variables('botAppName'))]"
             }
         }
-    ]
+    ],
+    "outputs": {
+        "botAppName": {
+            "type": "string",
+            "value": "[variables('botAppName')]"
+        }
+    }
 }
