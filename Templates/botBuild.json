@@ -1,0 +1,119 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "botId": {
+            "type": "string"
+        },
+        "msiId": {
+            "type": "string"
+        },
+        "rolloutName": {
+            "type": "string"
+        },
+        "env": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "va-build-"
+        },
+        "uniqueSuffix": {
+            "type": "string",
+            "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "botBuildContainer": "[concat(parameters('namePrefix'), parameters('botId'), '-', parameters('uniqueSuffix'))]",
+        "botBuilderId": "[resourceId('Microsoft.ContainerInstance/containerGroups', variables('botBuildContainer'))]",
+        "commonEnv": [
+                {
+                    "name": "AZ_SUB_ID",
+                    "value": "[subscription().subscriptionId]"
+                },
+                {
+                    "name": "AZ_GROUP_NAME",
+                    "value": "[resourceGroup().name]"
+                },
+                {
+                    "name": "AZ_USER_ASSIGNED_IDENTITY",
+                    "value": "[parameters('msiId')]"
+                },
+                {
+                    "name": "BOT_ARTIFACT_SUFFIX",
+                    "value": "[parameters('rolloutName')]"
+                },
+                {
+                    "name": "BOT_NAME",
+                    "value": "[parameters('botId')]"
+                }
+            ]
+    },
+    "resources": [
+        {
+            "name": "[variables('botBuildContainer')]",
+            "comments": "container instance to run botbuild",
+            "location": "[variables('location')]",
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2018-10-01",
+            "dependsOn": [],
+            "properties": {
+                "osType": "Linux",
+                "containers":[
+                    {
+                        "name": "[concat('botbuild-', parameters('rolloutName'))]",
+                        "properties": {
+                            "image": "hailiu2586/botbuild:0.1.21",
+                            "command": ["/scripts/cloud-build.sh"],
+                            "environmentVariables": "[union(variables('commonEnv'), parameters('env'))]",
+                            "resources": {
+                                "requests": {
+                                    "cpu": 2,
+                                    "memoryInGB": 4
+                                },
+                                "limits": {
+                                    "cpu": 2,
+                                    "memoryInGB": 4
+                                }
+                            },
+                            "ports": [
+                                {
+                                    "port": 80
+                                },
+                                {
+                                    "port": 8080
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "type": "Public",
+                    "dnsNameLabel": "[variables('botBuildContainer')]",
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 80
+                        },
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ]
+                }
+            },
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[parameters('msiId')]": {}
+                }
+            }
+        }
+    ],
+    "outputs": {
+
+    }
+}
