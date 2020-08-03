@@ -1,0 +1,64 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "namePrefix": {
+            "type": "string",
+            "defaultValue": "va-luis-"
+        },
+        "uniqueSuffix": {
+            "type": "string",
+            "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        }
+    },
+    "variables": {
+        "location": "[resourceGroup().location]",
+        "luisAccountName": "[concat(parameters('namePrefix'), parameters('uniqueSuffix'))]",
+        "luisAuthoringName": "[concat(parameters('namePrefix'), 'author-', parameters('uniqueSuffix'))]",
+        "luisAuthorLocationIndex": {
+            "westus": "westus",
+            "westus2": "westus",
+            "eastus": "westus",
+            "centralus": "westus"
+        },
+        "luisAuthorLocation": "[coalesce(variables('luisAuthorLocationIndex')[variables('location')], 'westus')]"
+    },
+    "resources": [
+        {
+            "name": "[variables('luisAccountName')]",
+            "comments": "LUIS cognitive service account for LUIS",
+            "location": "[variables('location')]",
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2016-02-01-preview",
+            "kind": "LUIS",
+            "sku": {
+                "name": "S0"
+            },
+            "properties": {
+            }
+        },
+        {
+            "name": "[variables('luisAuthoringName')]",
+            "comments": "LUIS cognitive service account for LUIS",
+            "location": "[variables('luisAuthorLocation')]",
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2017-04-18",
+            "kind": "LUIS.Authoring",
+            "sku": {
+                "name": "F0"
+            },
+            "properties": {
+            }
+        }
+    ],
+    "outputs": {
+        "luisAccountKey": {
+            "type": "string",
+            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('luisAccountName')), '2017-04-18').key1]"
+        },
+        "luisAuthorKey": {
+            "type": "string",
+            "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('luisAuthoringName')), '2017-04-18').key1]"
+        }
+    }
+}
