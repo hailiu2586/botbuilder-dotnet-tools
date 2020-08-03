@@ -7,14 +7,11 @@
       <Message Text="Update appsettings $(OutputPath)appSettings.json" />
       <UpdateAppSettingsTask ProjectDirectory="$(MSBuildProjectDirectory)" AppSettingsFile="$(OutputPath)appSettings.json" />
   </Target>
-  <Target Name="CopyAppSettingsToPublish" AfterTargets="SetSourceUrl" BeforeTargets="ZipPublishFolder">
-      <Copy
-        Condition=" '$(BuilderWindowsArchitecture)'=='X64' "
-        SourceFiles="$(OutputPath)appSettings.json"
-        DestinationFolder="$(OutputPath)\publish"/>
-  </Target>
   <Target Name="ZipPublishFolder" AfterTargets="_TransformWebConfig">
       <Message Text="Update appsettings $(BuilderOSDescription) $(BuilderWindowsArchitecture)"/>
+      <Copy
+        SourceFiles="$(OutputPath)appSettings.json"
+        DestinationFolder="$(OutputPath)\publish"/>
       <ZipDirectory
           SourceDirectory="$(OutputPath)\publish"
           Overwrite="true"
