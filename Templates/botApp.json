@@ -91,7 +91,7 @@
     "resources": [
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
-            "name": "[concat(parameters('hosting').keyVaultName.value, '/', variables('appPasswordSecret')]",
+            "name": "[concat(parameters('hosting').keyVaultName.value, '/', variables('appPasswordSecret'))]",
             "condition": "[not(empty(parameters('msAppPassword')))]",
             "apiVersion": "2019-09-01",
             "dependsOn": [],
@@ -158,10 +158,9 @@
         },
         {
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
-            "name": "[parameters('hosting').keyVaultName.value, '/add')]",
+            "name": "[concat(parameters('hosting').keyVaultName.value, '/add'))]",
             "apiVersion": "2019-09-01",
             "dependsOn": [
-                "[parameters('hosting').keyVaultName.value]",
                 "[variables('botAppResId')]"
             ],
             "properties": {
