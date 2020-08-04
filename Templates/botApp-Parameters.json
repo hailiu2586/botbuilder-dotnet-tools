@@ -1,0 +1,34 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentParameters.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "msAppId": {
+            "value": "blank"
+        },
+        "msAppPassword": {
+            "value": "blank"
+        },
+        "botId": {
+            "value": "botId"
+        },
+        "botEnv": {
+            "value": "prod"
+        },
+        "hosting": {
+            "value": {
+                "serverFarmId": {
+                    "value": "Microsoft.Web/serverfarms/serverFarm"
+                },
+                "appPasswordSecretId": {
+                    "value": "appPasswordSecretId"
+                },
+                "keyVaultId": {
+                    "value": "Microsoft.KeyVault/vaults/keyVaultName"
+                },
+                "keyVaultName": {
+                    "value": "keyVaultName"
+                }
+            }
+        }
+    }
+}

@@ -66,6 +66,7 @@
         }
     ],
     "variables": {
+        "location": "[resourceGroup().location]",
         "appPasswordSecret": "[concat(parameters('botId'), '-pwd-', parameters('uniqueSuffix'))]",
         "appPasswordSecretId": "[concat(parameters('hosting').keyVaultId.value, '/secrets/', variables('appPasswordSecret'))]",
         "botAppSettingsMap": {
