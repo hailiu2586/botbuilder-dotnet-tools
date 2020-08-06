@@ -22,12 +22,41 @@
         "uniqueSuffix": {
             "type": "string",
             "defaultValue": "[toLower(substring(uniqueString(resourceGroup().id, 'va-resources'), 0, 6))]"
+        },
+        "hosting": {
+            "type": "object",
+            "metadata": {
+                "description": "outputs.hosting.value from deploying hosting.json"
+            }
         }
     },
+    "functions": [
+        {
+            "namespace": "utils",
+            "members": {
+                "baseName": {
+                    "parameters": [
+                        {
+                            "name": "path",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "string",
+                        "value": "[take(parameters('path'), lastIndexOf(parameters('path'), '.'))]"
+                    }
+                }
+            }
+        }
+    ],
     "variables": {
         "location": "[resourceGroup().location]",
         "botBuildContainer": "[concat(parameters('namePrefix'), parameters('botId'), '-', parameters('uniqueSuffix'))]",
         "botBuilderId": "[resourceId('Microsoft.ContainerInstance/containerGroups', variables('botBuildContainer'))]",
+        "checkBuildStepName": "concat('checkBuildStep-', parameters('rolloutName'))]",
+        "checkBuildStepId": "[resourceId('Microsoft.DeploymentManager/steps', variables('checkBuildStepName'))]",
+        "botArtifactName": "[parameters('env').BOT_ARTIFACT]",
+        "botAppZipPath": "[concat('artifacts/', utils.baseName(variables('botArtifactName')), '-built-', parameters('rolloutName')  ,'.zip')]",
         "commonEnv": [
                 {
                     "name": "AZ_SUB_ID",
@@ -111,6 +140,74 @@
                     "[parameters('msiId')]": {}
                 }
             }
+        },
+        {
+            "name": "[variables('checkBuildStepName')]",
+            "comments": "wait for the ACI to finish the build out",
+            "location": "[variables('location')]",
+            "type": "Microsoft.DeploymentManager/steps",
+            "apiVersion": "2019-11-01-preview",
+            "dependsOn": [
+                "[variables('botBuildContainer')]"
+            ],
+            "properties": {
+                "stepType": "healthCheck",
+                "attributes": {
+                    "waitDuration": "PT1M",
+                    "duration": "PT10M",
+                    "healthyStateDuration": "PT1M",
+                    "maxElasticDuration": "PT10M",
+                    "type": "REST",
+                    "properties": {
+                        "healthChecks": [
+                            {
+                                "name": "buildCheck",
+                                "request": {
+                                    "method": "GET",
+                                    "uri": "[concat(parameters('hosting').storageBlobEndpoint.value, variables('botAppZipPath'), '?', parameters('hosting').storageSasToken.value)]",
+                                    "authentication": {
+                                        "type": "ApiKey",
+                                        "name": "X-Noop",
+                                        "in": "Header",
+                                        "value": "noop"
+                                    }
+                                },
+                                "response": {
+                                    "successStatusCodes": ["200"]
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DeploymentManager/rollouts",
+            "comments": "execute rollout",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[parameters('rolloutName')]",
+            "location": "[variables('location')]",
+            "Identity": {
+                "type": "userAssigned",
+                "identityIds": [
+                    "[variables('msiId')]"
+                ]
+            },
+            "dependsOn": ["[variables('checkBuildStepName')]"],
+            "properties": {
+            "buildVersion": "1.0.0.0",
+            "artifactSourceId": "[parameters('hosting').artifactId.value]",
+            "targetServiceTopologyId": "[parameters('hosting').topologyId.value]",
+            "stepGroups": [
+                {
+                    "name": "stepGroup1",
+                    "preDeploymentSteps": [],
+                    "deploymentTargetId": "[parameters('hosting').serviceUnitId.value]",
+                    "postDeploymentSteps": [{
+                        "stepId": "[variables('checkBuildStepId')]"
+                    }]
+                }
+            ]}
         }
     ],
     "outputs": {
