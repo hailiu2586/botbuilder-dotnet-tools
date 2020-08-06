@@ -190,7 +190,7 @@
             "Identity": {
                 "type": "userAssigned",
                 "identityIds": [
-                    "[variables('msiId')]"
+                    "[parameters('msiId')]"
                 ]
             },
             "dependsOn": ["[variables('checkBuildStepName')]"],
