@@ -55,7 +55,7 @@
         "botBuilderId": "[resourceId('Microsoft.ContainerInstance/containerGroups', variables('botBuildContainer'))]",
         "checkBuildStepName": "concat('checkBuildStep-', parameters('rolloutName'))]",
         "checkBuildStepId": "[resourceId('Microsoft.DeploymentManager/steps', variables('checkBuildStepName'))]",
-        "botArtifactName": "[parameters('env').BOT_ARTIFACT]",
+        "botArtifactName": "[parameters('env')[0].value]",
         "botAppZipPath": "[concat('artifacts/', utils.baseName(variables('botArtifactName')), '-built-', parameters('rolloutName')  ,'.zip')]",
         "commonEnv": [
                 {

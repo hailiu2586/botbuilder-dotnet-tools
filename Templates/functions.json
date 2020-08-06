@@ -1,0 +1,89 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "functions": [
+        {
+            "namespace": "utils",
+            "members": {
+                "baseName": {
+                    "parameters": [
+                        {
+                            "name": "path",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "string",
+                        "value": "[take(parameters('path'), lastIndexOf(parameters('path'), '.'))]"
+                    }
+                },
+                "project": {
+                    "parameters": [
+                        {
+                            "name": "list",
+                            "type": "array"
+                        },
+                        {
+                            "name": "select",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "array",
+                        "value": "[if(empty(parameters('list')), json('[]'), concat(createarray(first(parameters('list'))[parameters('select')]), utils.project(skip(parameters('list'), 1), parameters('select'))))]"
+                    }
+                },
+                "indexOf": {
+                    "parameters": [
+                        {
+                            "name": "list",
+                            "type": "array"
+                        },
+                        {
+                            "name": "key",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "int",
+                        "value": "[if(empty(parameters('list')), -1, if(equals(parameters('key'), first(parameters('list'))), 0, sum(1, utils.indexOf(skip(parameters('list'), 1), parameters('key')))))]"
+                    }
+                },
+                "find": {
+                    "parameters": [
+                        {
+                            "name": "list",
+                            "type": "array"
+                        },
+                        {
+                            "name": "select",
+                            "type": "string"
+                        },
+                        {
+                            "name": "key",
+                            "type": "string"
+                        }
+                    ],
+                    "output": {
+                        "type": "string",
+                        "value": "[parameters('list')[utils.indexOf(utils.project(parameters('list'), 'name')][parameters('select')]]"
+                    }
+                }
+            }
+        }
+    ],
+    "variables": {
+        "list": [
+            { "name": "foo", "value": "fooVal"},
+            { "name": "best", "value": "bestVal"}
+        ]
+    },
+    "resources": [],
+    "outputs": {
+        "lookInList": {
+            "type": "string",
+            "value": "[utils.find(variables('list'), 'value', 'best')]"
+        }
+    }
+}
