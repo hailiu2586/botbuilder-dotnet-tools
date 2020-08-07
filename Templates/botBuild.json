@@ -53,7 +53,7 @@
         "location": "[resourceGroup().location]",
         "botBuildContainer": "[concat(parameters('namePrefix'), parameters('botId'), '-', parameters('uniqueSuffix'))]",
         "botBuilderId": "[resourceId('Microsoft.ContainerInstance/containerGroups', variables('botBuildContainer'))]",
-        "checkBuildStepName": "concat('checkBuildStep-', parameters('rolloutName'))]",
+        "checkBuildStepName": "[concat('checkBuildStep-', parameters('rolloutName'))]",
         "checkBuildStepId": "[resourceId('Microsoft.DeploymentManager/steps', variables('checkBuildStepName'))]",
         "botArtifactName": "[parameters('env')[0].value]",
         "botAppZipPath": "[concat('artifacts/', utils.baseName(variables('botArtifactName')), '-built-', parameters('rolloutName')  ,'.zip')]",
